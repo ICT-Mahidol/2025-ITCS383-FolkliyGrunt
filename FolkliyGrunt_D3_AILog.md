@@ -1,10 +1,14 @@
 # 📝 D3: AI Usage Log
 
-Every team member MUST log their AI usage here.
+Every team member MUST log their AI usage in their respective section below.
+
+---
+
+## Person 1: Project Lead + Auth + Frontend
 
 ### Entry 1 — Project Scaffold & Dependency Configuration
 - **Date:** 2026-03-11
-- **Person:** Person 1 (Project Lead)
+- **Person:** Person 1
 - **AI Tool:** Gemini (Antigravity Agent)
 - **Task:** Initializing Node.js project, formatting `package.json`, and configuring `.env.example`.
 
@@ -22,7 +26,7 @@ Every team member MUST log their AI usage here.
 
 ### Entry 2 — Database and Auth Middleware Setup
 - **Date:** 2026-03-11
-- **Person:** Person 1 (Project Lead)
+- **Person:** Person 1
 - **AI Tool:** Gemini (Antigravity Agent)
 - **Task:** Setting up Supabase instances and API authentication middleware.
 
@@ -38,9 +42,9 @@ Every team member MUST log their AI usage here.
 **Verification Method:**
 > Reviewed the code format. Matches the required interface `req.user = { id, email, role, profile }` required by the rest of the team.
 
-### Entry 3 — Auth APIs and System Schema Schema
+### Entry 3 — Auth APIs and System Schema
 - **Date:** 2026-03-11
-- **Person:** Person 1 (Project Lead)
+- **Person:** Person 1
 - **AI Tool:** Gemini (Antigravity Agent)
 - **Task:** Implementing Auth Controllers, REST routes, and translating ER diagram into PostgreSQL schema.
 
@@ -55,110 +59,3 @@ Every team member MUST log their AI usage here.
 
 **Verification Method:**
 > Examined code visually to ensure SQL relations were sound (cascading deletes, unique fields) and Supabase methods used correctly. Design uses variables for simple theming.
-
----
-
-### Entry 4 — Waitlist Model & Payment Service Implementation
-- **Date:** 2026-03-11
-- **Person:** Nattapat Yotraksa / Person 4
-- **AI Tool:** Gemini (Antigravity Agent)
-- **Task:** Implementing the Waitlist model (`models/Waitlist.js`) and Payment Service (`services/paymentService.js`) as specified in `PERSON4_WAITLIST_PAYMENT_NOTIFICATION.md`.
-
-**Prompt:**
-> Implement the Person 4 spec: create the Waitlist model with static methods (add, getNextInQueue, markNotified, findByUser, expireOldEntries) using the existing config/db pool, and create the Payment Service with Stripe Charges API for processPayment and Stripe Refunds API for processRefund.
-
-**AI Output (Summary):**
-> Generated `models/Waitlist.js` with all required static methods matching the waitlist table schema. Generated `services/paymentService.js` using the Stripe Node.js SDK with `processPayment` (Charges API) and `processRefund` (Refunds API). Both files follow the exact function signatures from the spec for Person 3 integration.
-
-**Decision:**
-- [x] ✅ Accepted as-is
-
-**Modifications / Rejection Reason:**
-> Added a `remove(waitlistId, userId)` method to the Waitlist model (not in original spec) to fully implement the DELETE endpoint instead of leaving it as a TODO.
-
-**Verification Method:**
-> Ran `npx jest --forceExit --detectOpenHandles` — all tests pass. Verified function signatures match the interface table in the spec.
-
-### Entry 5 — Notification Service Implementation
-- **Date:** 2026-03-11
-- **Person:** Nattapat Yotraksa / Person 4
-- **AI Tool:** Gemini (Antigravity Agent)
-- **Task:** Implementing the Notification Service (`services/notificationService.js`) using Nodemailer with SMTP.
-
-**Prompt:**
-> Create the Notification Service with Nodemailer that sends email alerts when a waitlisted court becomes available. Include notifyWaitlist (gets next user in queue, marks as notified, sends email) and sendNotification (generic email sender). Use SMTP config from .env.
-
-**AI Output (Summary):**
-> Generated `services/notificationService.js` with a reusable SMTP transporter using Nodemailer. Includes `notifyWaitlist(courtId, startTime, endTime)` which queries the waitlist, marks the user as notified, and sends an HTML email. Also includes `sendNotification(userEmail, subject, message)` for generic emails. Email failures are caught gracefully without blocking the calling operation.
-
-**Decision:**
-- [x] ✅ Accepted as-is
-
-**Modifications / Rejection Reason:**
-> None — code matches the spec exactly.
-
-**Verification Method:**
-> Ran unit tests with mocked Nodemailer transporter — all 5 notification tests pass. Configured Mailtrap SMTP credentials for dev testing.
-
-### Entry 6 — Waitlist Controller, Routes & Frontend Page
-- **Date:** 2026-03-11
-- **Person:** Nattapat Yotraksa / Person 4
-- **AI Tool:** Gemini (Antigravity Agent)
-- **Task:** Implementing the waitlist REST API controller, Express routes, and the frontend HTML page.
-
-**Prompt:**
-> Create the waitlist controller with addToWaitlist, getMyWaitlist, removeFromWaitlist handlers. Create Express routes (POST /, GET /my, DELETE /:id) protected by authMiddleware. Uncomment the waitlist route in server.js. Also create a waitlist.html page following the same patterns as the existing login.html.
-
-**AI Output (Summary):**
-> Generated `controllers/waitlistController.js` with three handler methods. Generated `routes/waitlist.js` applying authMiddleware to all routes. Modified `server.js` to uncomment the waitlist route registration. Created `public/pages/waitlist.html` with a join-waitlist form, entry listing, and remove functionality using fetch API with Bearer token auth.
-
-**Decision:**
-- [x] ✏️ Accepted with modifications (describe changes below)
-
-**Modifications / Rejection Reason:**
-> The spec had `removeFromWaitlist` as a TODO stub returning only a message. Modified to fully implement deletion using the Waitlist model's `remove` method with proper 404 handling when the entry is not found.
-
-**Verification Method:**
-> Ran integration tests via supertest — all 8 waitlist API tests pass (add, auth check, DB error, list entries, empty list, remove, not found). Verified route is active in server.js.
-
-### Entry 7 — Unit Tests for Payment & Notification Services
-- **Date:** 2026-03-11
-- **Person:** Nattapat Yotraksa / Person 4
-- **AI Tool:** Gemini (Antigravity Agent)
-- **Task:** Writing Jest unit tests for `paymentService.js` and `notificationService.js`.
-
-**Prompt:**
-> Create unit tests for the payment service (mock Stripe SDK, test processPayment success/failure, processRefund success/failure) and notification service (mock Waitlist model and Nodemailer, test notifyWaitlist with user found/empty queue/email failure, test sendNotification success/failure).
-
-**AI Output (Summary):**
-> Generated `tests/paymentService.test.js` with 4 tests mocking Stripe's charges.create and refunds.create. Generated `tests/notificationService.test.js` with 5 tests mocking Nodemailer's sendMail and the Waitlist model. Initial version had mock reference issues — the mock functions were created inside jest.mock() factory but referenced separately in tests.
-
-**Decision:**
-- [x] ✏️ Accepted with modifications (describe changes below)
-
-**Modifications / Rejection Reason:**
-> First iteration had mock isolation issues (Stripe mock instances not linked between mock factory and test assertions). Fixed by hoisting `mockChargesCreate`, `mockRefundsCreate`, and `mockSendMail` as top-level `jest.fn()` references above `jest.mock()` calls so the same mock objects are shared.
-
-**Verification Method:**
-> Ran `npx jest --forceExit --detectOpenHandles` — all 22 tests pass across 4 suites (auth: 5, waitlist: 8, payment: 4, notification: 5). Coverage: paymentService.js at 100%, notificationService.js at 100%.
-
-### Entry 8 — Stripe API & Mailtrap SMTP Configuration
-- **Date:** 2026-03-11
-- **Person:** Nattapat Yotraksa / Person 4
-- **AI Tool:** Gemini (Antigravity Agent)
-- **Task:** Configuring Stripe test API keys and Mailtrap SMTP credentials in `.env`.
-
-**Prompt:**
-> Connect the Stripe API keys (secret key: sk_test_..., publishable key: pk_test_...) to the env file. Also configure Mailtrap SMTP credentials (host: sandbox.smtp.mailtrap.io, port: 2525, username and password) for dev email testing.
-
-**AI Output (Summary):**
-> Updated both `env` and `.env` files with the real Stripe test keys (STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY) and Mailtrap SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS). Noted that `pk_test_` is the frontend publishable key and `sk_test_` is the backend secret key.
-
-**Decision:**
-- [x] ✅ Accepted as-is
-
-**Modifications / Rejection Reason:**
-> None — credentials were placed in the correct environment variables.
-
-**Verification Method:**
-> Ran all tests after configuration — 22 tests pass. Verified `.env` file is loaded by dotenv in paymentService.js and notificationService.js.

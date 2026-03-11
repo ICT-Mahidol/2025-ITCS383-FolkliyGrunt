@@ -7,8 +7,3 @@ implementations/env
 # Node modules
 node_modules/
 implementations/node_modules/
-
-# Local dev / test output
-implementations/coverage/
-implementations/tests/jest_out.json
-implementations/test-output.txt
