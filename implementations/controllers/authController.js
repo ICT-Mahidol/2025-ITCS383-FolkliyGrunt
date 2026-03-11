@@ -1,6 +1,5 @@
 const { supabase, supabaseAdmin } = require('../config/supabase');
 const pool = require('../config/db');
-const Profile = require('../models/Profile');
 
 exports.register = async (req, res) => {
   const { email, password, full_name, address } = req.body;
@@ -23,15 +22,18 @@ exports.register = async (req, res) => {
     }
 
     // 2. Create user profile in our database
-    const rows = await Profile.create({
-        auth_id: user.id,
-        full_name,
-        address
-    });
+    const query = `
+      INSERT INTO profiles (auth_id, full_name, address, role)
+      VALUES ($1, $2, $3, 'CUSTOMER')
+      RETURNING *;
+    `;
+    const values = [user.id, full_name, address];
+    
+    const { rows } = await pool.query(query, values);
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: rows,
+      user: rows[0],
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -54,9 +56,10 @@ exports.login = async (req, res) => {
     }
 
     // 2. Check if user is disabled in our profiles table
-    const profile = await Profile.findByAuthId(data.user.id);
+    const query = 'SELECT is_disabled FROM profiles WHERE auth_id = $1';
+    const { rows } = await pool.query(query, [data.user.id]);
 
-    if (profile?.is_disabled) {
+    if (rows.length > 0 && rows[0].is_disabled) {
       // Optional: Sign out immediately if disabled
       await supabase.auth.signOut();
       return res.status(403).json({ error: 'Account is disabled. Please contact support.' });
@@ -75,12 +78,7 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     // req.user is populated by authMiddleware
-    // Flatten the response: combine Supabase user info with our profile table info
-    const fullProfile = {
-      ...req.user.profile, // id, auth_id, full_name, address, role, etc.
-      email: req.user.email
-    };
-    res.status(200).json({ profile: fullProfile });
+    res.status(200).json({ profile: req.user });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Internal server error fetching profile' });
@@ -92,9 +90,10 @@ exports.disableUser = async (req, res) => {
   
   try {
       // Assuming ID is the auth_id for simplicity, adjust query if it's the profile ID
-      const profile = await Profile.updateDisabledStatus(id, true);
+      const query = 'UPDATE profiles SET is_disabled = TRUE WHERE auth_id = $1 RETURNING *';
+      const { rows } = await pool.query(query, [id]);
 
-      if (!profile) {
+      if (rows.length === 0) {
           return res.status(404).json({ error: 'User not found' });
       }
 
@@ -103,7 +102,7 @@ exports.disableUser = async (req, res) => {
 
       res.status(200).json({
           message: 'User disabled successfully',
-          profile: profile
+          profile: rows[0]
       });
   } catch(error) {
       console.error('Disable user error', error);
